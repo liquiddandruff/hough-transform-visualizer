@@ -1,0 +1,18 @@
+<html>
+    <head>
+        <title>Hough transforms</title>
+        <script type="text/javascript" src="dist/paper-full.min.js"></script>
+        <script type="text/paperscript" src="script.js" canvas="draw_canvas"></script>
+        <link rel="stylesheet" href="style.css">
+    </head>
+    <body>
+        <div id="draw_panel">
+            <canvas id="draw_canvas" resize="true"></canvas>
+        </div>
+        <div id="instructions_panel" class="panel draggable"></div>
+        <div id="action_panel" class="panel draggable">
+            <a href="#" onclick="tool1.activate();">Lines</a>
+            <a href="#" onclick="tool2.activate();">Clouds</a>
+        </div>
+    </body>
+</html>
