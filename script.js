@@ -38,7 +38,7 @@ drawTool.onMouseDown = onMouseDown;
 drawTool.onMouseDrag = function(event) {
     if(drawBounds.contains(event.point)) {
         drawPath.add(event.point);
-        houghAcc(event.point.x, event.point.y, false);
+        drawHoughLines(event.point.x, event.point.y, false);
     }
 }
 
@@ -83,7 +83,7 @@ houghPreviewPath.strokeColor = 'red';
 drawTool.onMouseMove = function(event) {
     if(drawBounds.contains(event.point)) {
         houghPreviewPath.visible = true;
-        houghAcc(event.point.x, event.point.y, true);
+        drawHoughLines(event.point.x, event.point.y, true);
 
         canvasLinePath.visible = false;
         canvasRhoPath.visible = false;
@@ -104,7 +104,7 @@ drawTool.onMouseMove = function(event) {
 }
 
 var count = 0;
-function houghAcc(x, y, preview) {
+function drawHoughLines(x, y, preview) {
     x -= drawBounds.width / 2;
     y -= drawBounds.height / 2;
     var path;
@@ -119,17 +119,16 @@ function houghAcc(x, y, preview) {
     }
 
     var segments = 15;
-    var segmentLength = Math.floor(drawBounds.width / segments)
+    var segmentLength = Math.floor(drawBounds.width / segments);
 
     for (var thetaIndex = 0; thetaIndex < drawBounds.width; thetaIndex += segmentLength) {
-        var rho = rhoMax + x * cosTable[thetaIndex] + y * sinTable[thetaIndex];
+        var rho = drawBounds.height + x * cosTable[thetaIndex] + y * sinTable[thetaIndex];
         rho >>= 1;
-
-        path.add(new Point(thetaIndex + drawBounds.width, rho - drawBounds.height/4));
+        path.add(new Point(thetaIndex + drawBounds.width, rho));
     }
-    var rho = rhoMax + x * cosTable[drawBounds.width - 1] + y * sinTable[drawBounds.width - 1];
+    var rho = drawBounds.height + x * cosTable[drawBounds.width - 1] + y * sinTable[drawBounds.width - 1];
     rho >>= 1;
-    path.add(new Point(drawBounds.width - 1 + drawBounds.width, rho - drawBounds.height/4));
+    path.add(new Point(drawBounds.width - 1 + drawBounds.width, rho));
 
     var segmentCount = path.segments.length;
     path.reduce();
@@ -187,9 +186,15 @@ function drawInfoLines(x, y) {
     houghRhoPath.segments[0].point = new Point(x, houghBounds.height / 2);
     houghRhoPath.segments[1].point = new Point(x, y);
     
-    var rhoMag = houghRhoPath.segments[1].point.getDistance(houghRhoPath.segments[0].point);
+    var rhoMag = houghRhoPath.segments[1].point.getDistance(houghRhoPath.segments[0].point) * 2;
+    var sign = y > houghBounds.center.y ? -1 : 1;
     canvasRhoPath.segments[0].point = drawBounds.center;
-    canvasRhoPath.segments[1].point = drawBounds.center + [Math.cos(theta) * rhoMag, Math.sin(theta) * rhoMag];
+    canvasRhoPath.segments[1].point = drawBounds.center + [sign * Math.cos(theta) * rhoMag, sign * Math.sin(theta) * rhoMag];
+    
+    var rhoDir = (canvasRhoPath.segments[1].point - canvasRhoPath.segments[0].point).normalize();
+    var rhoPerp = new Point(-rhoDir.y, rhoDir.x);
+    canvasLinePath.segments[0].point = canvasRhoPath.segments[1].point + rhoPerp * 100;
+    canvasLinePath.segments[1].point = canvasRhoPath.segments[1].point - rhoPerp * 100;
 }
 
 function onFrame(event) {
