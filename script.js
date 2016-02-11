@@ -72,7 +72,7 @@ onResize = function(event) {
     drawBoundsPath.add(drawBounds.bottomRight);
     drawBoundsPath.add(drawBounds.bottomLeft);
     drawBoundsPath.add(drawBounds.topLeft);
-    
+
     rhoMax = Math.sqrt(drawBounds.width * drawBounds.width + drawBounds.height * drawBounds.height);
 
     cosTable = new Array(drawBounds.width);
@@ -191,21 +191,22 @@ function drawInfoLines(x, y) {
     });
     houghThetaPath.segments[0].point = new Point(houghBounds.x, y);
     houghThetaPath.segments[1].point = new Point(x, y);
-    houghRhoPath.segments[0].point = new Point(x, houghBounds.height / 2);
+    houghRhoPath.segments[0].point = new Point(x, houghBounds.height / 2 + houghBounds.y);
     houghRhoPath.segments[1].point = new Point(x, y);
-    
+    //houghRhoPath.segments[1].point = new Point(x, y + houghBounds.y - houghBounds.height);
+
     var rhoMag = houghRhoPath.segments[1].point.getDistance(houghRhoPath.segments[0].point) * 2;
     var sign = y > houghBounds.center.y ? -1 : 1;
     canvasRhoPath.segments[0].point = drawBounds.center;
     canvasRhoPath.segments[1].point = drawBounds.center + [sign * Math.cos(theta) * rhoMag, sign * Math.sin(theta) * rhoMag];
-    
+
     var rhoDir = (canvasRhoPath.segments[1].point - canvasRhoPath.segments[0].point).normalize();
     var rhoPerp = new Point(-rhoDir.y, rhoDir.x);
     var canvasLineP0 = canvasRhoPath.segments[1].point + rhoPerp * drawBounds.width;
     var canvasLineP1 = canvasRhoPath.segments[1].point - rhoPerp * drawBounds.width;
     canvasLinePath.segments[0].point = canvasLineP0;
     canvasLinePath.segments[1].point = canvasLineP1;
-    
+
     // take care of canvas lines extending onto hough space
     // if no intersections then it should not be visible
     var canvasLineIntersections = canvasLinePath.getIntersections(drawBoundsPath);
@@ -216,15 +217,15 @@ function drawInfoLines(x, y) {
     } else {
         canvasLinePath.visible = false;
     }
-    
+
     // assume only 1 intersection with the divider
     var canvasRhoIntersections = canvasRhoPath.getIntersections(divider);
     if(canvasRhoIntersections.length > 0) {
         canvasRhoPath.segments[1].point = canvasRhoIntersections[0].point;
     }
-    
+
 }
 
 function onFrame(event) {
-    
+
 }
