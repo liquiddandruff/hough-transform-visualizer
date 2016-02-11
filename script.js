@@ -136,10 +136,10 @@ function drawHoughLines(x, y, preview) {
     var difference = segmentCount - newSegmentCount;
     count += difference;
     var percentage = 100 - Math.round(newSegmentCount / segmentCount * 100);
-    textItem.content = difference + ' of the ' + segmentCount + ' segments were removed. Saving ' + percentage + '%';
+    //textItem.content = difference + ' of the ' + segmentCount + ' segments were removed. Saving ' + percentage + '%';
     path.smooth({type:'continuous'});//({ type: 'catmull-rom', factor: 0.5 });
     //count += path.segments.length;
-    houghText.content = count;
+    //houghText.content = count;
 }
 
 var canvasThetaPath =  new Path.Arc({
@@ -193,8 +193,33 @@ function drawInfoLines(x, y) {
     
     var rhoDir = (canvasRhoPath.segments[1].point - canvasRhoPath.segments[0].point).normalize();
     var rhoPerp = new Point(-rhoDir.y, rhoDir.x);
-    canvasLinePath.segments[0].point = canvasRhoPath.segments[1].point + rhoPerp * 100;
-    canvasLinePath.segments[1].point = canvasRhoPath.segments[1].point - rhoPerp * 100;
+    var canvasLineP0 = canvasRhoPath.segments[1].point + rhoPerp * 100;
+    var canvasLineP1 = canvasRhoPath.segments[1].point - rhoPerp * 100;
+    canvasLinePath.segments[0].point = canvasLineP0;
+    canvasLinePath.segments[1].point = canvasLineP1;
+    
+    // take care of canvas lines extending onto hough space
+    if(canvasLineP0.isInside(houghBounds) && canvasLineP1.isInside(houghBounds)) {
+        canvasLinePath.visible = false;
+    } else {
+        canvasLinePath.visible = true;
+    }
+    // assume only 1 intersection with the divider
+    var canvasLineIntersections = canvasLinePath.getIntersections(divider);
+    if(canvasLineIntersections.length > 0) {
+        if(canvasLineP0.isInside(houghBounds)) {
+            canvasLinePath.segments[0].point = canvasLineIntersections[0].point;
+        } else {
+            canvasLinePath.segments[1].point = canvasLineIntersections[0].point;
+        }
+        
+    }
+    
+    var canvasRhoIntersections = canvasRhoPath.getIntersections(divider);
+    if(canvasRhoIntersections.length > 0) {
+        canvasRhoPath.segments[1].point = canvasRhoIntersections[0].point;
+    }
+    
 }
 
 function onFrame(event) {
