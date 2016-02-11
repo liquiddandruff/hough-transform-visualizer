@@ -16,6 +16,7 @@ var houghText = new PointText(new Point(30, 40));
 houghText.fillColor = 'white';
 
 var drawBounds = new Rectangle(0, 0, view.bounds.width/2, view.bounds.height);
+var drawBoundsPath = new Path({visible: false});
 var houghBounds = new Rectangle(drawBounds.width, 0, drawBounds.width, drawBounds.height);
 var rhoMax;
 
@@ -65,6 +66,13 @@ onResize = function(event) {
         houghBounds = new Rectangle(0, drawBounds.height, drawBounds.width, drawBounds.height);
     }
 
+    drawBoundsPath.segments = [];
+    drawBoundsPath.add(drawBounds.topLeft);
+    drawBoundsPath.add(drawBounds.topRight);
+    drawBoundsPath.add(drawBounds.bottomRight);
+    drawBoundsPath.add(drawBounds.bottomLeft);
+    drawBoundsPath.add(drawBounds.topLeft);
+    
     rhoMax = Math.sqrt(drawBounds.width * drawBounds.width + drawBounds.height * drawBounds.height);
 
     cosTable = new Array(drawBounds.width);
@@ -193,28 +201,23 @@ function drawInfoLines(x, y) {
     
     var rhoDir = (canvasRhoPath.segments[1].point - canvasRhoPath.segments[0].point).normalize();
     var rhoPerp = new Point(-rhoDir.y, rhoDir.x);
-    var canvasLineP0 = canvasRhoPath.segments[1].point + rhoPerp * 100;
-    var canvasLineP1 = canvasRhoPath.segments[1].point - rhoPerp * 100;
+    var canvasLineP0 = canvasRhoPath.segments[1].point + rhoPerp * drawBounds.width;
+    var canvasLineP1 = canvasRhoPath.segments[1].point - rhoPerp * drawBounds.width;
     canvasLinePath.segments[0].point = canvasLineP0;
     canvasLinePath.segments[1].point = canvasLineP1;
     
     // take care of canvas lines extending onto hough space
-    if(canvasLineP0.isInside(houghBounds) && canvasLineP1.isInside(houghBounds)) {
-        canvasLinePath.visible = false;
-    } else {
-        canvasLinePath.visible = true;
-    }
-    // assume only 1 intersection with the divider
-    var canvasLineIntersections = canvasLinePath.getIntersections(divider);
+    // if no intersections then it should not be visible
+    var canvasLineIntersections = canvasLinePath.getIntersections(drawBoundsPath);
     if(canvasLineIntersections.length > 0) {
-        if(canvasLineP0.isInside(houghBounds)) {
-            canvasLinePath.segments[0].point = canvasLineIntersections[0].point;
-        } else {
-            canvasLinePath.segments[1].point = canvasLineIntersections[0].point;
-        }
-        
+        canvasLinePath.segments[0].point = canvasLineIntersections[0].point;
+        canvasLinePath.segments[1].point = canvasLineIntersections[1].point;
+        canvasLinePath.visible = true;
+    } else {
+        canvasLinePath.visible = false;
     }
     
+    // assume only 1 intersection with the divider
     var canvasRhoIntersections = canvasRhoPath.getIntersections(divider);
     if(canvasRhoIntersections.length > 0) {
         canvasRhoPath.segments[1].point = canvasRhoIntersections[0].point;
