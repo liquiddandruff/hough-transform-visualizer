@@ -18,8 +18,6 @@ detect lines. This is an implementation in JS using the vector graphics library 
 
 Inspired by [this video](https://www.youtube.com/watch?v=ebfi7qOFLuo) and [gmarty/hough-transform-js](https://github.com/gmarty/hough-transform-js)
 
------
-
 ## License
 
 The MIT License (MIT)
